@@ -18,7 +18,15 @@ import hashlib
 from urllib.parse import urlparse
 import time
 from requests.auth import HTTPDigestAuth
+from SCons.Script import COMMAND_LINE_TARGETS
+
 Import("env")
+
+
+
+
+
+
 
 try:
     from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
@@ -36,6 +44,7 @@ def on_upload(source, target, env):
     upload_url_compatibility = env.GetProjectOption('custom_upload_url')
     upload_url = upload_url_compatibility.replace("/update", "")
 
+    
     with open(firmware_path, 'rb') as firmware:
         md5 = hashlib.md5(firmware.read()).hexdigest()
 
@@ -43,7 +52,13 @@ def on_upload(source, target, env):
         host_ip = parsed_url.netloc
 
         # Führe die GET-Anfrage aus
+        
         start_url = f"{upload_url}/ota/start?mode=fr&hash={md5}"
+        
+        #upload a filesystem image, instead of a firmware image
+        if('uploadfs' in COMMAND_LINE_TARGETS):
+            print("Uploading filesystem image")
+            start_url = f"{upload_url}/ota/start?mode=fs&hash={md5}"
 
         start_headers = {
             'Host': host_ip,
